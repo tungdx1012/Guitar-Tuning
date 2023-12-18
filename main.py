@@ -50,12 +50,12 @@ def callback(indata, frames, time, status):
   if any(indata):
     windowSamples = np.concatenate((windowSamples,indata[:, 0])) # append new samples
     windowSamples = windowSamples[len(indata[:, 0]):] # remove old samples
-    magnitudeSpec = abs( scipy.fftpack.fft(windowSamples)[:len(windowSamples)//2] )
+    absFreqSpectrum = abs( scipy.fftpack.fft(windowSamples)[:len(windowSamples)//2] )
 
     for i in range(int(62/(SAMPLE_FREQ/WINDOW_SIZE))):
-      magnitudeSpec[i] = 0 #suppress mains hum
+      absFreqSpectrum[i] = 0 #suppress mains hum
 
-    maxInd = np.argmax(magnitudeSpec)
+    maxInd = np.argmax(absFreqSpectrum)
     maxFreq = maxInd * (SAMPLE_FREQ/WINDOW_SIZE)
     closestNote, closestPitch = find_closest_note(maxFreq)
 
@@ -63,12 +63,13 @@ def callback(indata, frames, time, status):
     show_popup(f"{closestNote}  {maxFreq:.1f}/{closestPitch:.1f}")
 
     # Update the plot
+    timeX = np.arange(0, SAMPLE_FREQ / 2, SAMPLE_FREQ / len(windowSamples))
     ax.set_xlim([0, 1200])  # Set the limits of x-axis to match the frequency range of a guitar
-    ax.set_ylim([0, max(magnitudeSpec)])  # Set the limits of y-axis to the current maximum of the spectrum
+    ax.set_ylim([0, max(absFreqSpectrum)])  # Set the limits of y-axis to the current maximum of the spectrum
     plt.ylabel('|X(n)|')
     plt.xlabel('frequency[Hz]')
-    line.set_ydata(magnitudeSpec)
-    line.set_xdata(np.linspace(0, SAMPLE_FREQ / 2, len(magnitudeSpec)))  # Set x-data to represent frequency
+    line.set_ydata(absFreqSpectrum)
+    line.set_xdata(timeX)  # Set x-data to represent frequency
     canvas.draw()
 
 # Start the microphone input stream
