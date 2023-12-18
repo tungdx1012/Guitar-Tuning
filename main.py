@@ -65,6 +65,8 @@ def callback(indata, frames, time, status):
     # Update the plot
     ax.set_xlim([0, 1200])  # Set the limits of x-axis to match the frequency range of a guitar
     ax.set_ylim([0, max(magnitudeSpec)])  # Set the limits of y-axis to the current maximum of the spectrum
+    plt.ylabel('|X(n)|')
+    plt.xlabel('frequency[Hz]')
     line.set_ydata(magnitudeSpec)
     line.set_xdata(np.linspace(0, SAMPLE_FREQ / 2, len(magnitudeSpec)))  # Set x-data to represent frequency
     canvas.draw()
