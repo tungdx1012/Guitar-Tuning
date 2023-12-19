@@ -1,3 +1,4 @@
+import time
 import sounddevice as sd
 import numpy as np
 import scipy.fftpack
@@ -11,6 +12,7 @@ WINDOW_SIZE = 44100 # window size of the DFT in samples
 WINDOW_STEP = 21050 # step size of window
 WINDOW_T_LEN = WINDOW_SIZE / SAMPLE_FREQ # length of the window in seconds
 SAMPLE_T_LENGTH = 1 / SAMPLE_FREQ # length between two samples in seconds
+POWER_THRESH = 1e-6
 windowSamples = [0 for _ in range(WINDOW_SIZE)]
 
 # This function finds the closest note for a given pitch
@@ -50,6 +52,12 @@ def callback(indata, frames, time, status):
   if any(indata):
     windowSamples = np.concatenate((windowSamples,indata[:, 0])) # append new samples
     windowSamples = windowSamples[len(indata[:, 0]):] # remove old samples
+
+    # skip if signal power is too low
+    signal_power = (np.linalg.norm(windowSamples, ord=2) ** 2) / len(windowSamples)
+    if signal_power < POWER_THRESH:
+      return
+
     absFreqSpectrum = abs( scipy.fftpack.fft(windowSamples)[:len(windowSamples)//2] )
 
     for i in range(int(62/(SAMPLE_FREQ/WINDOW_SIZE))):
@@ -78,5 +86,6 @@ try:
     blocksize=WINDOW_STEP,
     samplerate=SAMPLE_FREQ):
     window.mainloop()
+    time.sleep(0.5)
 except Exception as e:
     print(str(e))
