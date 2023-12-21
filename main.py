@@ -21,7 +21,7 @@ OCTAVE_BANDS = [50, 100, 200, 400, 800, 1600, 3200, 6400, 12800, 25600]
 ALL_NOTES = ["A","A#","B","C","C#","D","D#","E","F","F#","G","G#"]
 def find_closest_note(pitch):
   i = int(np.round(np.log2(pitch/CONCERT_PITCH)*12))
-  closest_note = ALL_NOTES[i%12] + str(4 + (i + 9) // 12)
+  closest_note = ALL_NOTES[i%12]
   closest_pitch = CONCERT_PITCH*2**(i/12)
   return closest_note, closest_pitch
 
@@ -38,7 +38,7 @@ def show_popup(message):
     label.config(text=message)
 
 # Load the audio file
-fs, data = wav.read('D#.wav')
+fs, data = wav.read('F#.wav')
 
 HANN_WINDOW = np.hanning(WINDOW_SIZE)
 def callback(indata, frames, time, status):
@@ -51,9 +51,11 @@ def callback(indata, frames, time, status):
   if status:
     print(status)
     return
-  if any(indata):
-    callback.window_samples = np.concatenate((callback.window_samples, data))  # append new samples
-    callback.window_samples = callback.window_samples[len(data):]  # remove old samples
+  if indata.any():
+    # Reshape indata to have the same number of dimensions as callback.window_samples
+    indata = indata.reshape(-1)
+    callback.window_samples = np.concatenate((callback.window_samples, indata))  # append new samples
+    callback.window_samples = callback.window_samples[len(indata):]  # remove old samples
 
     # skip if signal power is too low
     signal_power = (np.linalg.norm(callback.window_samples, ord=2) ** 2) / len(callback.window_samples)
@@ -107,5 +109,9 @@ def callback(indata, frames, time, status):
       show_popup(f"{closest_note}  {max_freq:.1f}/{closest_pitch:.1f}")
     else:
       print(f"...")
+
+# Process the audio data in chunks
+for i in range(0, len(data), WINDOW_STEP):
+  callback(data[i:i+WINDOW_STEP], WINDOW_STEP, None, None)
 
 window.mainloop()
