@@ -1,8 +1,7 @@
-import time
-import sounddevice as sd
 import numpy as np
 import scipy.fftpack
 import tkinter as tk
+import scipy.io.wavfile as wav
 
 # General settings
 SAMPLE_FREQ = 44100 # sample frequency in Hz
@@ -35,24 +34,20 @@ label.pack()
 def show_popup(message):
     label.config(text=message)
 
-# The sounddevice callback function
-def callback(indata, frames, time, status):
-  global windowSamples
-  if status:
-    print(status)
-  if any(indata):
-    windowSamples = np.concatenate((windowSamples,indata[:, 0])) # append new samples
-    windowSamples = windowSamples[len(indata[:, 0]):] # remove old samples
+# Load the audio file
+fs, data = wav.read('D#.wav')
 
-    # skip if signal power is too low
-    signal_power = (np.linalg.norm(windowSamples, ord=2) ** 2) / len(windowSamples)
-    if signal_power < POWER_THRESH:
-      return
+# Process the audio data
+windowSamples = np.concatenate((windowSamples, data.flatten())) # append new samples
+windowSamples = windowSamples[len(data):] # remove old samples
 
+# skip if signal power is too low
+signal_power = (np.linalg.norm(windowSamples, ord=2) ** 2) / len(windowSamples)
+if signal_power >= POWER_THRESH:
     absFreqSpectrum = abs( scipy.fftpack.fft(windowSamples)[:len(windowSamples)//2] )
 
     for i in range(int(62/(SAMPLE_FREQ/WINDOW_SIZE))):
-      absFreqSpectrum[i] = 0 #suppress mains hum
+        absFreqSpectrum[i] = 0 #suppress mains hum
 
     maxInd = np.argmax(absFreqSpectrum)
     maxFreq = maxInd * (SAMPLE_FREQ/WINDOW_SIZE)
@@ -61,12 +56,4 @@ def callback(indata, frames, time, status):
     # Update the label text
     show_popup(f"{closestNote}  {maxFreq:.1f}/{closestPitch:.1f}")
 
-# Start the microphone input stream
-try:
-  with sd.InputStream(channels=1, callback=callback,
-    blocksize=WINDOW_STEP,
-    samplerate=SAMPLE_FREQ):
-    window.mainloop()
-    time.sleep(0.5)
-except Exception as e:
-    print(str(e))
+window.mainloop()
