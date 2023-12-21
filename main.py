@@ -2,8 +2,6 @@ import time
 import sounddevice as sd
 import numpy as np
 import scipy.fftpack
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import tkinter as tk
 
 # General settings
@@ -27,19 +25,12 @@ def find_closest_note(pitch):
 
 # Create a new Tkinter window
 window = tk.Tk()
-window.title("Real-time Note Detection")
-window.geometry("800x600")  # Set the size of the window
+window.title("Note Detection")
+window.geometry("300x100")  # Set the size of the window
 
 # Create a label with large font size
 label = tk.Label(window, text="", font=("Helvetica", 20))
 label.pack()
-
-# Create a new matplotlib figure and draw the canvas
-fig, ax = plt.subplots(1,1)
-line, = ax.plot([], [], lw=2)
-canvas = FigureCanvasTkAgg(fig, master=window)
-canvas.draw()
-canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)
 
 def show_popup(message):
     label.config(text=message)
@@ -69,16 +60,6 @@ def callback(indata, frames, time, status):
 
     # Update the label text
     show_popup(f"{closestNote}  {maxFreq:.1f}/{closestPitch:.1f}")
-
-    # Update the plot
-    timeX = np.arange(0, SAMPLE_FREQ / 2, SAMPLE_FREQ / len(windowSamples))
-    ax.set_xlim([0, 1200])  # Set the limits of x-axis to match the frequency range of a guitar
-    ax.set_ylim([0, max(absFreqSpectrum)])  # Set the limits of y-axis to the current maximum of the spectrum
-    plt.ylabel('|X(n)|')
-    plt.xlabel('frequency[Hz]')
-    line.set_ydata(absFreqSpectrum)
-    line.set_xdata(timeX)  # Set x-data to represent frequency
-    canvas.draw()
 
 # Start the microphone input stream
 try:
