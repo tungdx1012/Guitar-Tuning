@@ -28,17 +28,17 @@ def find_closest_note(pitch):
 # Create a new Tkinter window
 window = tk.Tk()
 window.title("Note Detection")
-window.geometry("300x100")  # Set the size of the window
+window.geometry("500x300")  # Set the size of the window
 
 # Create a label with large font size
 label = tk.Label(window, text="", font=("Helvetica", 20))
 label.pack()
 
+# Create a list of specific .wav files
+audio_files = ['D.wav', 'D#.wav', 'F#.wav', 'G.wav', 'G#.wav']
+
 def show_popup(message):
     label.config(text=message)
-
-# Load the audio file
-fs, data = wav.read('F#.wav')
 
 HANN_WINDOW = np.hanning(WINDOW_SIZE)
 def callback(indata, frames, time, status):
@@ -108,10 +108,27 @@ def callback(indata, frames, time, status):
     if callback.noteBuffer.count(callback.noteBuffer[0]) == len(callback.noteBuffer):
       show_popup(f"{closest_note}  {max_freq:.1f}/{closest_pitch:.1f}")
     else:
-      print(f"...")
+      show_popup(f"...")
 
-# Process the audio data in chunks
-for i in range(0, len(data), WINDOW_STEP):
-  callback(data[i:i+WINDOW_STEP], WINDOW_STEP, None, None)
+def process_audio_file(audio_file):
+  fs, data = wav.read(audio_file)
+  # Process the audio data
+  for i in range(0, len(data), WINDOW_STEP):
+    callback(data[i:i + WINDOW_STEP], WINDOW_STEP, None, None)
+
+# Create a function to display the list of audio files and let the user choose one
+def choose_audio_file():
+  chosen_audio_file = listbox.get(listbox.curselection())
+  process_audio_file(chosen_audio_file)
+
+# Create a Listbox to display the list of audio files
+listbox = tk.Listbox(window, height=10, width=30)
+for audio_file in audio_files:
+    listbox.insert(tk.END, audio_file)
+listbox.pack()
+
+# Create a Button to let the user choose an audio file
+button = tk.Button(window, text="Choose an audio file...", command=choose_audio_file)
+button.pack()
 
 window.mainloop()
