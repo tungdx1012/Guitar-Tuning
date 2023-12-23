@@ -4,12 +4,11 @@ import tkinter as tk
 import scipy.io.wavfile as wav
 
 # General settings
-SAMPLE_FREQ = 44100 # sample frequency in Hz
-WINDOW_SIZE = 44100 # window size of the DFT in samples
-WINDOW_STEP = 21050 # step size of window
+SAMPLE_FREQ = 48000 # sample frequency in Hz
+WINDOW_SIZE = 48000 # window size of the DFT in samples
+WINDOW_STEP = 12000 # step size of window
 WINDOW_T_LEN = WINDOW_SIZE / SAMPLE_FREQ # length of the window in seconds
 SAMPLE_T_LENGTH = 1 / SAMPLE_FREQ # length between two samples in seconds
-POWER_THRESH = 1e-6
 windowSamples = [0 for _ in range(WINDOW_SIZE)]
 
 # This function finds the closest note for a given pitch
